@@ -14,7 +14,6 @@ public class PlayerController : MonoBehaviour
 
     private MoveDirection _moveDirection = MoveDirection.None;
 
-    [SerializeField]
     private ScoreCounter _scoreCounter;
 
     private AudioController _audioController;
@@ -24,10 +23,15 @@ public class PlayerController : MonoBehaviour
     [HideInInspector]
     public UnityEvent<GameObject> IsBallHit;
 
-    [SerializeField]
     private SteeringWheel _steeringWheel;
 
     private float _speed = 0f;
+
+    private List<float> _listOfCarsSpeedMultipliers = new(4) {0.2f, 0.4f, 0.7f, 1.0f };
+
+    private string _currentBoatKey = "CurrentBoat";
+
+    private float _carSpeedMultiplier;
 
     private void Awake()
     {
@@ -43,11 +47,21 @@ public class PlayerController : MonoBehaviour
         }
 
         _audioController = FindObjectOfType<AudioController>();
+
+        _scoreCounter = FindObjectOfType<ScoreCounter>();
+
+        _steeringWheel = FindObjectOfType<SteeringWheel>();
+    }
+
+    private void Start()
+    {
+        _carSpeedMultiplier = _listOfCarsSpeedMultipliers[PlayerPrefs.GetInt(_currentBoatKey)];
+        Debug.Log("Car Speed Multiplier " + _carSpeedMultiplier);
     }
 
     private void Update()
     {
-        _speed = _steeringWheel.Value;
+        _speed = _steeringWheel.Value * _carSpeedMultiplier;
 
         if (Mathf.Sign(_speed) == Mathf.Sign(-1) && _speed != 0f)
             ChangeMoveSide(0);
@@ -79,7 +93,7 @@ public class PlayerController : MonoBehaviour
 
     private void MovePlayer(int moveDir)
     {
-        _rb.velocity = new Vector2(moveDir * Time.deltaTime * Mathf.Abs(_speed), 0f);
+        _rb.velocity = new Vector2(moveDir * Mathf.Abs(_speed), 0f);
     }
 
     public void ChangeMoveSide(int moveDirection)
